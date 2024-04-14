@@ -8,14 +8,31 @@ import type { Configuration } from 'webpack';
 
 type RelativePath = `./${string}`;
 type AbsolutePath = `/${string}`;
-const isRelative = (path: string): boolean => path.startsWith('.');
+type AbsoluteJSONPath = `${AbsolutePath}.json`;
+
+function isRelative(path: string): path is RelativePath {
+  return path.startsWith('./') || path.startsWith('../');
+}
 
 
 export interface RuneOptions {
+  /** The root directory of the project, defaults to `process.cwd()` */
   rootDir?: string;
-  entryPointDir?: string;
-  outputDir?: string;
-  manifestDir?: string;
+  /**
+   * The directory where the entry points are located
+   * @type {RelativePath}
+   * */
+  entryPointDir: RelativePath;
+  /**
+   * The directory where the output files will be saved
+   * @type {AbsolutePath|RelativePath}
+   * */
+  outputDir?: AbsolutePath | RelativePath;
+  /**
+   * The directory where the manifest file will be saved
+   * @type {AbsoluteJSONPath}
+   * */
+  manifest?: AbsoluteJSONPath;
   tsConfig?: string;
 }
 
@@ -23,7 +40,7 @@ export default class RuneConfig {
   protected static rootDir = process.cwd();
   protected entryPointDir: RelativePath = './src/pages';
   protected outputDir: AbsolutePath = RuneConfig.jResolve('public', 'bundles');
-  protected manifestDir: AbsolutePath = RuneConfig.jResolve('server', 'assets');
+  protected manifest: AbsoluteJSONPath = RuneConfig.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
 
   protected tsConfig = './tsconfig.bundle.json';
   protected entries: Record<string, string>;
@@ -32,17 +49,24 @@ export default class RuneConfig {
     return resolve(join(this.rootDir, ...paths)) as AbsolutePath
   }
 
-  constructor(options: RuneOptions) {
-    if (options.rootDir) RuneConfig.rootDir = options.rootDir;
-    if (options.tsConfig) this.tsConfig = options.tsConfig;
-    if (options.entryPointDir) {
-      options.entryPointDir = (isRelative(options.entryPointDir)) ? options.entryPointDir : join(RuneConfig.rootDir, options.entryPointDir);
+  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig }: RuneOptions) {
+    RuneConfig.rootDir = rootDir ?? process.cwd();
+
+    if (tsConfig) this.tsConfig = tsConfig;
+    if (entryPointDir) {
+      this.entryPointDir = isRelative(entryPointDir)
+        ? entryPointDir
+        : join(RuneConfig.rootDir, entryPointDir) as RelativePath;
     }
-    if (options.outputDir) {
-      options.outputDir = (isRelative(options.outputDir)) ? RuneConfig.jResolve(options.outputDir) : options.outputDir;
+    if (outputDir) {
+      this.outputDir = isRelative(outputDir)
+        ? RuneConfig.jResolve(outputDir)
+        : outputDir;
     }
-    if (options.manifestDir) {
-      options.manifestDir = (isRelative(options.manifestDir)) ? RuneConfig.jResolve(options.manifestDir) : options.manifestDir;
+    if (manifest) {
+      this.manifest = isRelative(manifest)
+        ? RuneConfig.jResolve(manifest) as AbsoluteJSONPath
+        : manifest as AbsoluteJSONPath;
     }
 
     this.entries = this.getEntries();
@@ -107,7 +131,7 @@ export default class RuneConfig {
           return true;
         },
         publicPath: '/',
-        fileName: this.manifestDir,
+        fileName: this.manifest,
         useEntryKeys: true,
         map: (file) => {
           const nameSections = file.name.split('/');
