@@ -1,6 +1,6 @@
 {
   "name": "@magik_io/rune",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/Rune.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "@types/eslint": "^8.56.7",
+    "@types/eslint": "^8.56.9",
     "@types/eslint__js": "^8.42.3",
     "@types/gradient-string": "^1.1.6",
     "@types/node": "^20.12.7",
