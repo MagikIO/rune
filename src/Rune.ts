@@ -49,7 +49,7 @@ export default class RuneConfig {
     return resolve(join(this.rootDir, ...paths)) as AbsolutePath
   }
 
-  public initTools(rootDir: string = process.cwd()) {
+  public static initTools(rootDir: string = process.cwd()) {
     RuneConfig.rootDir = rootDir;
     return this;
   }
