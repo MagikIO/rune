@@ -49,9 +49,11 @@ export default class RuneConfig {
     return resolve(join(this.rootDir, ...paths)) as AbsolutePath
   }
 
-  public static initTools(rootDir: string = process.cwd()) {
-    RuneConfig.rootDir = rootDir;
-    return this;
+  public static tools(rootDir: string = process.cwd()) {
+    this.rootDir = rootDir;
+    return {
+      jResolve: (...paths: Array<string>) => resolve(join(rootDir, ...paths)) as AbsolutePath
+    }
   }
 
   constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig }: RuneOptions) {
