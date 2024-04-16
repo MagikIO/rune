@@ -44,7 +44,10 @@ export interface RuneOptions {
   mode?: 'development' | 'production';
 
   /** The preferred logging level */
-  logLevel?: "verbose" | "none" | "error" | "warn" | "info" | "log"
+  logLevel?: "verbose" | "none" | "error" | "warn" | "info" | "log",
+
+  /** debug */
+  debug?: boolean;
 }
 
 export default class Rune {
@@ -60,6 +63,8 @@ export default class Rune {
   protected tsConfig = './tsconfig.bundle.json';
   protected entries: { [key: string]: Array<string> } = {};
 
+  protected debug = false;
+
   public static jResolve<Paths extends Array<string> = string[]>(...paths: Paths) {
     return resolve(join(this.rootDir, ...paths)) as AbsolutePath
   }
@@ -71,9 +76,8 @@ export default class Rune {
     }
   }
 
-  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL }: RuneOptions) {
+  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug }: RuneOptions) {
     Rune.rootDir = rootDir ?? process.cwd();
-
     if (tsConfig) this.tsConfig = tsConfig;
     if (entryPointDir) {
       this.entryPointDir = isRelative(entryPointDir)
@@ -93,14 +97,27 @@ export default class Rune {
     if (mode) this.mode = mode;
     if (developmentURL) this.developmentURL = developmentURL;
 
+    if (debug) {
+      this.debug = debug;
+      consola.start('<Rune> -> INSTANTIATING RUNE')
+      consola.info({ Rune: this });
+    }
+
     this.entries = this.getEntries();
+
+    if (debug) {
+      consola.success('<Rune> -> INSTANTIATING RUNE')
+    }
   }
 
   private getEntries() {
     const { entryPointDir } = this;
     const { rootDir } = Rune;
 
-    return glob([`${entryPointDir}**/*.ts`], {
+    if (this.debug) {
+      consola.start('<Rune> -> GETTING ENTRIES')
+    }
+    const entries = glob([`${entryPointDir}**/*.ts`], {
       cwd: rootDir,
       absolute: false,
       objectMode: true,
@@ -120,6 +137,11 @@ export default class Rune {
         return { [newName]: [entPath] }
       }
     }).reduce((acc, cur) => ({ ...acc, ...cur }), {});
+    if (this.debug) {
+      consola.info({ entries });
+      consola.success('<Rune> -> GETTING ENTRIES')
+    }
+    return entries;
   }
 
   protected DEFAULT_PROD_CONFIG = (): Configuration => ({
@@ -246,7 +268,7 @@ export default class Rune {
       new ForkTsCheckerWebpackPlugin({
         async: true,
         typescript: {
-          diagnosticOptions: { semantic: true, syntactic: true, declaration: true, global: true },
+          diagnosticOptions: { semantic: true, syntactic: true },
           configFile: this.tsConfig,
           memoryLimit: 4096,
           mode: 'write-references',
@@ -277,9 +299,12 @@ export default class Rune {
   })
 
   public getConfig(configOptions: Configuration = this.DEFAULT_PROD_CONFIG()): Configuration {
-    return Object.assign(
+    if (this.debug) consola.start('<Rune> -> GETTING CONFIG')
+    const config = Object.assign(
       {},
       (this.mode === 'production') ? this.DEFAULT_PROD_CONFIG() : this.DEFAULT_DEV_CONFIG(),
       configOptions)
+    if (this.debug) consola.success('<Rune> -> GETTING CONFIG')
+    return config;
   }
 }
