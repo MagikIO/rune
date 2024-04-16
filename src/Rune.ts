@@ -298,7 +298,7 @@ export default class Rune {
     devtool: 'source-map',
   })
 
-  public getConfig(configOptions: Configuration = this.DEFAULT_PROD_CONFIG()): Configuration {
+  public getConfig(configOptions?: Configuration): Configuration {
     if (this.debug) consola.start('<Rune> -> GETTING CONFIG')
     const config = Object.assign(
       {},
