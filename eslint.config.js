@@ -1,20 +1,7 @@
-// @ts-check
-
-const eslint = require('@eslint/js');
+/* eslint-disable n/no-unpublished-require */
 const tseslint = require('typescript-eslint');
+const { LintGolem } = require('@magik_io/lint_golem');
 
 module.exports = tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  {
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
-      },
-    },
-  },
-  {
-    ignores: ['*.js', '*.cjs', '*.mjs', '*.d.ts', 'dist/', 'node_modules/', '.yarn/'],
-  },
-);
+  ...new LintGolem({ rootDir: __dirname }).config
+)
