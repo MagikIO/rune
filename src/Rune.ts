@@ -24,30 +24,28 @@ function isRelative(path: string): path is RelativePath {
 export interface RuneOptions {
   /** The root directory of the project, defaults to `process.cwd()` */
   rootDir?: string;
-
   /** The directory where the entry points are located */
   entryPointDir: RelativePath;
-
   /** The directory where the output files will be saved */
   outputDir?: AbsolutePath | RelativePath;
-
   /** The directory where the manifest file will be saved */
   manifest?: AbsoluteJSONPath;
-
   /** The path to the tsconfig.json file */
   tsConfig?: string;
-
   /** The URL to use in development mode */
   developmentURL?: 'http://localhost:5000';
-
   /** The mode to run webpack in */
   mode?: 'development' | 'production';
-
   /** The preferred logging level */
   logLevel?: "verbose" | "none" | "error" | "warn" | "info" | "log",
-
   /** debug */
   debug?: boolean;
+  /** Use SWC instead of TSC */
+  useSWC?: boolean;
+  /** Use Project refs */
+  useProjectRefs?: boolean;
+  /** Profile TS */
+  profileTS?: boolean;
 }
 
 export default class Rune {
@@ -55,6 +53,13 @@ export default class Rune {
   protected entryPointDir: RelativePath = './src/pages';
   protected outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
   protected manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
+  protected useSWC = false;
+  protected _useProjectRefs = false;
+  protected get useProjectRefs() {
+    if (this.useSWC) return false;
+    return this._useProjectRefs;
+  }
+  protected profileTS = false;
 
   protected developmentURL = 'http://localhost:5000';
 
@@ -76,8 +81,11 @@ export default class Rune {
     }
   }
 
-  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug }: RuneOptions) {
+  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useSWC, useProjectRefs, profileTS }: RuneOptions) {
     Rune.rootDir = rootDir ?? process.cwd();
+    if (useSWC) this.useSWC = useSWC;
+    if (useProjectRefs) this._useProjectRefs = useProjectRefs;
+    if (profileTS) this.profileTS = profileTS;
     if (tsConfig) this.tsConfig = tsConfig;
     if (entryPointDir) {
       this.entryPointDir = isRelative(entryPointDir)
@@ -229,17 +237,44 @@ export default class Rune {
     },
     module: {
       rules: [
-        {
-          test: /\.([cm]?ts|tsx)$/,
-          include: Rune.jResolve('src'),
-          loader: 'ts-loader',
-          options: { configFile: this.tsConfig, transpileOnly: true },
-        },
+        (this.useSWC)
+          ? {
+            test: /\.([cm]?js|jsx)$/,
+            include: Rune.jResolve('src'),
+            exclude: /node_modules/,
+            loader: 'swc-loader',
+            options: {
+              jsc: {
+                parser: {
+                  syntax: 'typescript',
+                  tsx: true,
+                  dynamicImport: true,
+                  decorators: true,
+                  decoratorsBeforeExport: true,
+                },
+                transform: {
+                  legacyDecorator: true,
+                  decoratorMetadata: true,
+                  decoratorsBeforeExport: true,
+                },
+              },
+            },
+          }
+          : {
+            test: /\.([cm]?ts|tsx)$/,
+            include: Rune.jResolve('src'),
+            exclude: /node_modules/,
+            loader: 'ts-loader',
+            options: {
+              configFile: this.tsConfig,
+              transpileOnly: true,
+              projectReferences: this.useProjectRefs,
+            },
+          },
       ],
     },
     plugins: [
       new HotModuleReplacementPlugin(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       new WebpackWatchedGlobEntries(),
       new WebpackManifestPlugin({
         filter: (file) => {
@@ -265,13 +300,16 @@ export default class Rune {
           return aPath[aPath.length - 1].localeCompare(bPath[bPath.length - 1]);
         },
       }),
+
       new ForkTsCheckerWebpackPlugin({
         async: true,
         typescript: {
           diagnosticOptions: { semantic: true, syntactic: true },
           configFile: this.tsConfig,
           memoryLimit: 4096,
+          build: this.useProjectRefs ? true : false,
           mode: 'write-references',
+          profile: this.profileTS,
         },
         issue: {
           exclude: [
