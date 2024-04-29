@@ -40,8 +40,6 @@ export interface RuneOptions {
   logLevel?: "verbose" | "none" | "error" | "warn" | "info" | "log",
   /** debug */
   debug?: boolean;
-  /** Use SWC instead of TSC */
-  useSWC?: boolean;
   /** Use Project refs */
   useProjectRefs?: boolean;
   /** Profile TS */
@@ -53,12 +51,7 @@ export default class Rune {
   protected entryPointDir: RelativePath = './src/pages';
   protected outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
   protected manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
-  protected useSWC = false;
-  protected _useProjectRefs = false;
-  protected get useProjectRefs() {
-    if (this.useSWC) return false;
-    return this._useProjectRefs;
-  }
+  protected useProjectRefs = false;
   protected profileTS = false;
 
   protected developmentURL = 'http://localhost:5000';
@@ -81,10 +74,9 @@ export default class Rune {
     }
   }
 
-  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useSWC, useProjectRefs, profileTS }: RuneOptions) {
+  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, profileTS }: RuneOptions) {
     Rune.rootDir = rootDir ?? process.cwd();
-    if (useSWC) this.useSWC = useSWC;
-    if (useProjectRefs) this._useProjectRefs = useProjectRefs;
+    if (useProjectRefs) this.useProjectRefs = useProjectRefs;
     if (profileTS) this.profileTS = profileTS;
     if (tsConfig) this.tsConfig = tsConfig;
     if (entryPointDir) {
@@ -237,40 +229,17 @@ export default class Rune {
     },
     module: {
       rules: [
-        (this.useSWC)
-          ? {
-            test: /\.([cm]?js|jsx)$/,
-            include: Rune.jResolve('src'),
-            exclude: /node_modules/,
-            loader: 'swc-loader',
-            options: {
-              jsc: {
-                parser: {
-                  syntax: 'typescript',
-                  tsx: true,
-                  dynamicImport: true,
-                  decorators: true,
-                  decoratorsBeforeExport: true,
-                },
-                transform: {
-                  legacyDecorator: true,
-                  decoratorMetadata: true,
-                  decoratorsBeforeExport: true,
-                },
-              },
-            },
-          }
-          : {
-            test: /\.([cm]?ts|tsx)$/,
-            include: Rune.jResolve('src'),
-            exclude: /node_modules/,
-            loader: 'ts-loader',
-            options: {
-              configFile: this.tsConfig,
-              transpileOnly: true,
-              projectReferences: this.useProjectRefs,
-            },
+        {
+          test: /\.([cm]?ts|tsx)$/,
+          include: Rune.jResolve('src'),
+          exclude: /node_modules/,
+          loader: 'ts-loader',
+          options: {
+            configFile: this.tsConfig,
+            transpileOnly: true,
+            projectReferences: this.useProjectRefs,
           },
+        },
       ],
     },
     plugins: [
