@@ -276,7 +276,7 @@ export default class Rune {
           diagnosticOptions: { semantic: true, syntactic: true },
           configFile: this.tsConfig,
           memoryLimit: 4096,
-          build: this.useProjectRefs ? true : false,
+          build: true,
           mode: 'write-references',
           profile: this.profileTS,
         },

@@ -1,6 +1,6 @@
 {
   "name": "@magik_io/rune",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "main": "dist/Rune.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -11,7 +11,6 @@
     "webpack": "^5.91.0"
   },
   "dependencies": {
-    "@swc/core": "^1.4.17",
     "consola": "^3.2.3",
     "fast-glob": "^3.3.2",
     "fork-ts-checker-notifier-webpack-plugin": "^9.0.0",
@@ -33,6 +32,16 @@
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.8.0",
     "webpack": "^5.91.0"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 140,
+    "tabs": false,
+    "quoteProps": "consistent",
+    "experimentalTernaries": false
   },
   "packageManager": "yarn@4.1.1"
 }
