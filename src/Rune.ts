@@ -209,7 +209,7 @@ export default class Rune {
   protected DEFAULT_CSS_CONFIG = (): Configuration => ({
     module: {
       rules: [
-        { test: /\.css$/i, use: ["css-loader"] },
+        { test: /\.css$/i, use: ["style-loader", "css-loader"] },
       ],
     },
   })

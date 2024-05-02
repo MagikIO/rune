@@ -1,6 +1,6 @@
 {
   "name": "@magik_io/rune",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "main": "dist/Rune.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -17,6 +17,7 @@
     "fast-glob": "^3.3.2",
     "fork-ts-checker-notifier-webpack-plugin": "^9.0.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
+    "style-loader": "^4.0.0",
     "webpack-hot-middleware": "^2.26.1",
     "webpack-manifest-plugin": "^5.0.0",
     "webpack-watched-glob-entries-plugin": "^3.0.0"
