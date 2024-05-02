@@ -16,5 +16,6 @@
     "eslint*.*": true
   },
   "explorerExclude.backup": {},
-  "eslint.nodePath": ".yarn/sdks"
+  "eslint.nodePath": ".yarn/sdks",
+  "cSpell.words": ["defu"]
 }

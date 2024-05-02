@@ -5,6 +5,7 @@ import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import { join, resolve } from 'node:path';
 import { HotModuleReplacementPlugin, type Configuration } from 'webpack';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
+import { defu } from 'defu';
 // @ts-expect-error - This package does not have types
 import WebpackWatchedGlobEntries from 'webpack-watched-glob-entries-plugin';
 
@@ -44,6 +45,8 @@ export interface RuneOptions {
   useProjectRefs?: boolean;
   /** Profile TS */
   profileTS?: boolean;
+  /** Bundle CSS */
+  bundleCSS?: boolean;
 }
 
 export default class Rune {
@@ -53,6 +56,7 @@ export default class Rune {
   protected manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
   protected useProjectRefs = false;
   protected profileTS = false;
+  protected bundleCSS = false;
 
   protected developmentURL = 'http://localhost:5000';
 
@@ -74,10 +78,11 @@ export default class Rune {
     }
   }
 
-  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, profileTS }: RuneOptions) {
+  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, profileTS, bundleCSS }: RuneOptions) {
     Rune.rootDir = rootDir ?? process.cwd();
     if (useProjectRefs) this.useProjectRefs = useProjectRefs;
     if (profileTS) this.profileTS = profileTS;
+    if (bundleCSS) this.bundleCSS = bundleCSS;
     if (tsConfig) this.tsConfig = tsConfig;
     if (entryPointDir) {
       this.entryPointDir = isRelative(entryPointDir)
@@ -195,11 +200,18 @@ export default class Rune {
         sort: (a, b) => {
           const aPath = a.path.split('/');
           const bPath = b.path.split('/');
-          consola.info({ aPath, bPath });
           return aPath[aPath.length - 1].localeCompare(bPath[bPath.length - 1]);
         },
       }),
     ],
+  })
+
+  protected DEFAULT_CSS_CONFIG = (): Configuration => ({
+    module: {
+      rules: [
+        { test: /\.css$/i, use: ["css-loader"] },
+      ],
+    },
   })
 
   protected DEFAULT_DEV_CONFIG = (): Configuration => ({
@@ -307,10 +319,8 @@ export default class Rune {
 
   public getConfig(configOptions?: Configuration): Configuration {
     if (this.debug) consola.start('<Rune> -> GETTING CONFIG')
-    const config = Object.assign(
-      {},
-      (this.mode === 'production') ? this.DEFAULT_PROD_CONFIG() : this.DEFAULT_DEV_CONFIG(),
-      configOptions)
+    let config = defu(configOptions, (this.mode === 'production') ? this.DEFAULT_PROD_CONFIG() : this.DEFAULT_DEV_CONFIG())
+    if (this.bundleCSS) config = defu(config, this.DEFAULT_CSS_CONFIG());
     if (this.debug) consola.success('<Rune> -> GETTING CONFIG')
     return config;
   }
