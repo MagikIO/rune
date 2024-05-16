@@ -1,6 +1,6 @@
 {
   "name": "@magik_io/rune",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "main": "dist/Rune.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -23,16 +23,16 @@
     "webpack-watched-glob-entries-plugin": "^3.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.1.1",
-    "@magik_io/lint_golem": "^1.5.0",
+    "@eslint/js": "^9.2.0",
+    "@magik_io/lint_golem": "^2.1.1",
     "@types/eslint": "^8.56.10",
     "@types/eslint__js": "^8.42.3",
     "@types/gradient-string": "^1.1.6",
-    "@types/node": "^20.12.8",
+    "@types/node": "^20.12.12",
     "@types/webpack-hot-middleware": "^2.25.9",
-    "eslint": "^9.1.1",
+    "eslint": "^9.2.0",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.8.0",
+    "typescript-eslint": "^7.9.0",
     "webpack": "^5.91.0"
   },
   "prettier": {
@@ -45,5 +45,11 @@
     "quoteProps": "consistent",
     "experimentalTernaries": false
   },
-  "packageManager": "yarn@4.1.1"
+  "exports": {
+    ".": {
+      "import": "./dist/Rune.js",
+      "require": "./dist/Rune.js"
+    }
+  },
+  "packageManager": "yarn@4.2.2"
 }

@@ -175,7 +175,7 @@ export default class Rune {
     module: {
       rules: [
         {
-          test: /\.([cm]?ts|tsx)$/,
+          test: /\.([cm]?ts|tsx|d.ts)$/,
           include: Rune.jResolve('src'),
           loader: 'ts-loader',
           options: { configFile: this.tsConfig, transpileOnly: true },
@@ -242,7 +242,7 @@ export default class Rune {
     module: {
       rules: [
         {
-          test: /\.([cm]?ts|tsx)$/,
+          test: /\.([cm]?ts|tsx|d.ts)$/,
           include: Rune.jResolve('src'),
           exclude: /node_modules/,
           loader: 'ts-loader',
