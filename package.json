@@ -4,7 +4,7 @@
   "main": "dist/Rune.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "npm:publish": "npm publish --access public"
+    "iterate": "npm version patch && git push origin main --tags && npm publish --access public"
   },
   "peerDependencies": {
     "consola": "^3.2.3",
@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "consola": "^3.2.3",
-    "css-loader": "^7.1.1",
+    "css-loader": "^7.1.2",
     "defu": "^6.1.4",
     "fast-glob": "^3.3.2",
     "fork-ts-checker-notifier-webpack-plugin": "^9.0.0",
@@ -23,17 +23,17 @@
     "webpack-watched-glob-entries-plugin": "^3.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.2.0",
-    "@magik_io/lint_golem": "^2.1.1",
+    "@eslint/js": "^9.5.0",
+    "@magik_io/lint_golem": "^2.1.4",
     "@types/eslint": "^8.56.10",
     "@types/eslint__js": "^8.42.3",
     "@types/gradient-string": "^1.1.6",
-    "@types/node": "^20.12.12",
+    "@types/node": "^20.14.2",
     "@types/webpack-hot-middleware": "^2.25.9",
-    "eslint": "^9.2.0",
+    "eslint": "^9.5.0",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.9.0",
-    "webpack": "^5.91.0"
+    "typescript-eslint": "^7.13.0",
+    "webpack": "^5.92.0"
   },
   "prettier": {
     "trailingComma": "es5",
@@ -51,5 +51,5 @@
       "require": "./dist/Rune.js"
     }
   },
-  "packageManager": "yarn@4.2.2"
+  "packageManager": "yarn@4.3.0"
 }
