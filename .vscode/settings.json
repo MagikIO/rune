@@ -3,7 +3,7 @@
     "**/.yarn": true,
     "**/.pnp.*": true
   },
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "files.exclude": {
     "**/.git": false,
@@ -21,6 +21,7 @@
   "explorerExclude.backup": {},
   "eslint.nodePath": ".yarn/sdks",
   "cSpell.words": [
-    "defu"
+    "defu",
+    "globbed"
   ]
 }

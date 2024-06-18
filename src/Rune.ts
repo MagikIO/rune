@@ -8,18 +8,7 @@ import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 import { defu } from 'defu';
 // @ts-expect-error - This package does not have types
 import WebpackWatchedGlobEntries from 'webpack-watched-glob-entries-plugin';
-
-type RelativePath = `./${string}`;
-type AbsolutePath = `/${string}`;
-type AbsoluteJSONPath = `${AbsolutePath}.json`;
-
-/**
- * A type-guard that validates if a given path is a relative path.
- * @param path - The path to check.
- */
-function isRelative(path: string): path is RelativePath {
-  return path.startsWith('./') || path.startsWith('../');
-}
+import { type RelativePath, type AbsolutePath, type AbsoluteJSONPath, isRelative } from './types/Types';
 
 /** Represents the options that can be passed to Rune to create a new webpack configFile */
 export interface RuneOptions {
