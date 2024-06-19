@@ -1,14 +1,10 @@
 import { consola } from 'consola';
-import { globSync as glob } from 'fast-glob';
-import ForkTsCheckerNotifierWebpackPlugin from 'fork-ts-checker-notifier-webpack-plugin';
-import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import { join, resolve } from 'node:path';
 import { HotModuleReplacementPlugin, type Configuration } from 'webpack';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 import { defu } from 'defu';
-// @ts-expect-error - This package does not have types
-import WebpackWatchedGlobEntries from 'webpack-watched-glob-entries-plugin';
-import { type RelativePath, type AbsolutePath, type AbsoluteJSONPath, isRelative } from './types/Types';
+import { GlobWatcher } from './plugins/GlobWatcher.js';
+import { type RelativePath, type AbsolutePath, type AbsoluteJSONPath, isRelative } from './types/Types.js';
 
 /** Represents the options that can be passed to Rune to create a new webpack configFile */
 export interface RuneOptions {
@@ -106,31 +102,10 @@ export default class Rune {
 
   private getEntries() {
     const { entryPointDir } = this;
-    const { rootDir } = Rune;
+    if (this.debug) consola.start('<Rune> -> GETTING ENTRIES')
 
-    if (this.debug) {
-      consola.start('<Rune> -> GETTING ENTRIES')
-    }
-    const entries = glob([`${entryPointDir}**/*.ts`], {
-      cwd: rootDir,
-      absolute: false,
-      objectMode: true,
-    }).map(({ path: entPath }) => {
-      const newName = entPath
-        .replace(entryPointDir, '').split('.ts')[0];
+    const entries = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], { basename_as_entry_name: true })() as { [key: string]: Array<string> }
 
-      if (this.mode === 'development') {
-        return {
-          [newName]: [
-            'webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true',
-            entPath
-          ]
-        }
-      } else {
-        entPath = entPath.startsWith('/') ? entPath.slice(1) : entPath;
-        return { [newName]: [entPath] }
-      }
-    }).reduce((acc, cur) => ({ ...acc, ...cur }), {});
     if (this.debug) {
       consola.info({ entries });
       consola.success('<Rune> -> GETTING ENTRIES')
@@ -245,7 +220,7 @@ export default class Rune {
     },
     plugins: [
       new HotModuleReplacementPlugin(),
-      new WebpackWatchedGlobEntries(),
+      new GlobWatcher(),
       new WebpackManifestPlugin({
         filter: (file) => {
           if (!file.isInitial
@@ -269,28 +244,6 @@ export default class Rune {
           const bPath = b.path.split('/');
           return aPath[aPath.length - 1].localeCompare(bPath[bPath.length - 1]);
         },
-      }),
-
-      new ForkTsCheckerWebpackPlugin({
-        async: true,
-        typescript: {
-          diagnosticOptions: { semantic: true, syntactic: true },
-          configFile: this.tsConfig,
-          memoryLimit: 4096,
-          build: this.useProjectRefs,
-          mode: 'write-references',
-          profile: this.profileTS,
-        },
-        issue: {
-          exclude: [
-            { file: '**/node_modules' },
-          ],
-        },
-      }),
-      new ForkTsCheckerNotifierWebpackPlugin({
-        title: 'Magik TypeScript',
-        excludeWarnings: true,
-        skipFirstNotification: true
       }),
     ],
     watchOptions: {

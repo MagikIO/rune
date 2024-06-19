@@ -8,7 +8,8 @@ module.exports = tseslint.config(
     disabledRules: [
       'n/no-unpublished-import',
       'n/no-unpublished-require',
-      '@typescript-eslint/no-require-imports'
+      '@typescript-eslint/no-require-imports',
+      '@typescript-eslint/no-var-requires',
     ]
   }).config
 )
