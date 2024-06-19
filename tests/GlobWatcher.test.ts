@@ -112,8 +112,8 @@ describe('GlobWatcher', () => {
 
         const result = GlobWatcher.getFiles('./src/**/*.ts', { includeHMR: true });
         expect(result['./src/Rune.ts']).toEqual([
-          'webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true',
           './src/Rune.ts',
+          'webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true'
         ]);
       });
 
