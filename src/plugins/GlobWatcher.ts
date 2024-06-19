@@ -63,7 +63,7 @@ export class GlobWatcher {
       if (pluginOptions?.includeHMR && process.env.NODE_ENV === 'development') {
         files[entryName] = [
           file,
-          `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
+          `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=2000&reload=true`,
         ]
       } else {
         files[entryName] = [file];
