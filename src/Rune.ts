@@ -99,17 +99,16 @@ export default class Rune {
   public getEntries() {
     const { entryPointDir, developmentURL } = this;
     if (this.debug) consola.start('<Rune> -> GETTING ENTRIES')
-    const getEntryPoints = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], {
+    const entries = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], {
       includeHMR: true,
       developmentURL,
     });
-    const entries = getEntryPoints() as { [key: string]: Array<string> }
 
     if (this.debug) {
       consola.info({ entries });
       consola.success('<Rune> -> GETTING ENTRIES')
     }
-    return entries;
+    return entries as { [key: string]: Array<string> };
   }
 
   public DEFAULT_PROD_CONFIG = (): Configuration => ({

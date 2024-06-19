@@ -39,7 +39,7 @@ describe('Rune', () => {
   describe('[M] rune.getEntries()', () => {
     it('should retrieve entries using GlobWatcher', () => {
       const rune = new Rune({ entryPointDir: './src' });
-      expect(rune.getEntries()).toEqual({ 'src/Rune': 'src/Rune.ts' });
+      expect(rune.getEntries()).toEqual({ 'src/Rune': ['src/Rune.ts'] });
     });
   });
 
@@ -52,7 +52,7 @@ describe('Rune', () => {
 
     it('DEFAULT_CSS_CONFIG should include CSS rules', () => {
       const config = rune.DEFAULT_CSS_CONFIG();
-      const rules = config.module.rules as Array<{ test: RegExp }>;
+      const rules = config.module!.rules as Array<{ test: RegExp }>;
       expect(rules.some(rule => rule.test.toString().includes('.css'))).toBe(true);
     });
 
@@ -74,7 +74,7 @@ describe('Rune', () => {
     it('should allow for the use of of project references', () => {
       const rune = new Rune({ entryPointDir: './src', useProjectRefs: true });
       expect(rune.useProjectRefs).toBe(true);
-      const devRules = rune.DEFAULT_DEV_CONFIG().module.rules as Array<{ options: { projectReferences: boolean } }>
+      const devRules = rune.DEFAULT_DEV_CONFIG().module!.rules as Array<{ options: { projectReferences: boolean } }>
       expect(devRules[0].options.projectReferences).toBe(true);
     });
 

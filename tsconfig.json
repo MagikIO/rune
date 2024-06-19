@@ -100,6 +100,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": ["./src/**/*.ts", "./tests/GlobWatcher.test.ts", "./tests/Rune.test.ts", "./unlint.ts"],
+  "include": ["./src/**/*.ts", "./tests/GlobWatcher.test.ts", "./tests/Rune.test.ts"],
   "exclude": ["node_modules", ".yarn", ".git", ".vscode"]
 }

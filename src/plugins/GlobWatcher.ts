@@ -12,37 +12,34 @@ interface PluginOptions {
 }
 
 export class GlobWatcher {
-  public static directories = [] as string[];
+  public static directories = new Set<string>();
 
-  static getEntries(globs: string | string[], pluginOptions?: PluginOptions): () => Record<string, string | Array<string>> {
+  static getEntries(globs: string | string[], pluginOptions?: PluginOptions) {
+    // Make sure we have everything we need
     if (typeof pluginOptions !== 'undefined' && typeof pluginOptions !== 'object') throw new TypeError('pluginOptions_ must be an object');
-    // Check if globs are provided properly
     if (typeof globs !== 'string' && !Array.isArray(globs)) throw new TypeError('Globs must be a string or an array of strings');
-    // Check if globOptions is provided properly
     if (pluginOptions?.globOptions && typeof pluginOptions.globOptions !== 'object') throw new TypeError('globOptions must be an object');
+
     // Options defaults
     const options = Object.assign({ basename_as_entry_id: false }, pluginOptions);
+    let globbedFiles: Record<string, string | Array<string>> = {};
     // Reset directories
-    GlobWatcher.directories.length = 0;
+    GlobWatcher.directories.clear();
 
-    return function () {
-      // Make entries an array
-      if (!Array.isArray(globs)) globs = [globs];
-      let globbedFiles: Record<string, string | Array<string>> = {};
+    if (!Array.isArray(globs)) globs = [globs];
 
-      // Map through the globs
-      globs.forEach((globString: string) => {
-        const base = globParent(globString);
-        // Dont add if its already in the directories
-        if (GlobWatcher.directories.indexOf(base) === -1) GlobWatcher.directories.push(base);
-        // Get the globbedFiles
-        const files = GlobWatcher.getFiles(globString, options);
-        // Set the globbed files
-        if (files) globbedFiles = Object.assign(files, globbedFiles);
-      });
+    // Map through the globs
+    globs.forEach((globString: string) => {
+      const base = globParent(globString);
+      // Dont add if its already in the directories
+      if (!GlobWatcher.directories.has(base)) GlobWatcher.directories.add(base);
+      // Get the globbedFiles
+      const files = GlobWatcher.getFiles(globString, options);
+      // Set the globbed files
+      if (files) globbedFiles = Object.assign(files, globbedFiles);
+    });
 
-      return globbedFiles;
-    };
+    return globbedFiles;
   }
 
   static getFiles(globString: string, pluginOptions?: PluginOptions) {
@@ -63,16 +60,16 @@ export class GlobWatcher {
       // Add the entry to the files obj
       files[entryName] = file;
 
-      if (pluginOptions?.includeHMR) {
-        if (process.env.NODE_ENV === 'development') {
-          files[file] = [
-            file,
-            `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
-          ]
-        }
-        if (process.env.NODE_ENV === 'production') { files[file] = [file]; }
+      if (pluginOptions?.includeHMR && process.env.NODE_ENV === 'development') {
+        files[entryName] = [
+          file,
+          `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
+        ]
+      } else {
+        files[entryName] = [file];
       }
     });
+
     return files;
   }
 
@@ -97,15 +94,15 @@ export class GlobWatcher {
    * @param {Function} callback
    */
   public afterCompile(compilation: Compilation, callback: () => void): void {
-    if (compilation.contextDependencies instanceof Set) { // Support Webpack >= 4
-      for (const directory of GlobWatcher.directories) {
+
+    for (const directory of GlobWatcher.directories) {
+      if (compilation.contextDependencies instanceof Set) { // Support Webpack >= 4
         compilation.contextDependencies.add(path.normalize(directory));
-      }
-    } else if (Array.isArray(compilation.contextDependencies)) { // Support Webpack < 4
-      /* eslint-disable */
-      // @ts-expect-error - TS doesn't know about the plugin method, as we are using types from webpack 5
-      compilation.contextDependencies = compilation.contextDependencies.concat(GlobWatcher.directories);
-    } /* eslint-enable */
+      } else if (Array.isArray(compilation.contextDependencies)) { // Support Webpack < 4
+        /* eslint-disable */
+        compilation.contextDependencies.push(path.normalize(directory));
+      } /* eslint-enable */
+    }
 
     callback();
   }
