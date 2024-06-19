@@ -8,6 +8,7 @@ interface PluginOptions {
   basename_as_entry_name?: boolean;
   globOptions?: Options;
   includeHMR?: boolean;
+  developmentURL?: string;
 }
 
 export class GlobWatcher {
@@ -48,6 +49,7 @@ export class GlobWatcher {
     const files: Record<string, string | Array<string>> = {};
     const base = globParent(globString);
     const globOptions = pluginOptions?.globOptions ?? {};
+    const developmentURL = pluginOptions?.developmentURL ?? 'http://localhost:5000';
 
     globSync(globString, globOptions)?.forEach((file: string) => {
       // Format the entryName
@@ -65,7 +67,7 @@ export class GlobWatcher {
         if (process.env.NODE_ENV === 'development') {
           files[file] = [
             file,
-            'webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true',
+            `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
           ]
         }
         if (process.env.NODE_ENV === 'production') { files[file] = [file]; }

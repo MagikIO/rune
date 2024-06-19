@@ -97,10 +97,11 @@ export default class Rune {
   }
 
   public getEntries() {
-    const { entryPointDir } = this;
+    const { entryPointDir, developmentURL } = this;
     if (this.debug) consola.start('<Rune> -> GETTING ENTRIES')
     const getEntryPoints = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], {
-      includeHMR: true
+      includeHMR: true,
+      developmentURL,
     });
     const entries = getEntryPoints() as { [key: string]: Array<string> }
 
