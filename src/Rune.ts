@@ -11,15 +11,15 @@ export interface RuneOptions {
   /** The root directory of the project, defaults to `process.cwd()` */
   rootDir?: string;
   /** The directory where the entry points are located */
-  entryPointDir: RelativePath;
+  entryPointDir: RelativePath | AbsolutePath;
   /** The directory where the output files will be saved */
   outputDir?: AbsolutePath | RelativePath;
   /** The directory where the manifest file will be saved */
-  manifest?: AbsoluteJSONPath;
+  manifest?: AbsoluteJSONPath | `${RelativePath}.json`;
   /** The path to the tsconfig.json file */
   tsConfig?: string;
   /** The URL to use in development mode */
-  developmentURL?: 'http://localhost:5000';
+  developmentURL?: string;
   /** The mode to run webpack in */
   mode?: 'development' | 'production';
   /** The preferred logging level */
@@ -28,29 +28,27 @@ export interface RuneOptions {
   debug?: boolean;
   /** Use Project refs */
   useProjectRefs?: boolean;
-  /** Profile TS */
-  profileTS?: boolean;
   /** Bundle CSS */
   bundleCSS?: boolean;
 }
 
 export default class Rune {
-  protected static rootDir = process.cwd();
-  protected entryPointDir: RelativePath = './src/pages';
-  protected outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
-  protected manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
-  protected useProjectRefs = false;
-  protected profileTS = false;
-  protected bundleCSS = false;
+  public static rootDir = process.cwd();
+  public entryPointDir: RelativePath = './src/pages';
+  public outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
+  public manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
+  public useProjectRefs = false;
 
-  protected developmentURL = 'http://localhost:5000';
+  public bundleCSS = false;
 
-  protected mode: 'development' | 'production' = 'production';
-  protected logLevel: "verbose" | "none" | "error" | "warn" | "info" | "log" = 'verbose';
-  protected tsConfig = './tsconfig.bundle.json';
-  protected entries: { [key: string]: Array<string> } = {};
+  public developmentURL: string = 'http://localhost:5000' as string;
 
-  protected debug = false;
+  public mode: 'development' | 'production' = 'production';
+  public logLevel: "verbose" | "none" | "error" | "warn" | "info" | "log" = 'verbose';
+  public tsConfig = './tsconfig.bundle.json';
+  public entries: { [key: string]: Array<string> } = {};
+
+  public debug = false;
 
   public static jResolve<Paths extends Array<string> = string[]>(...paths: Paths) {
     return resolve(join(this.rootDir, ...paths)) as AbsolutePath
@@ -63,10 +61,10 @@ export default class Rune {
     }
   }
 
-  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, profileTS, bundleCSS }: RuneOptions) {
+  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, bundleCSS, logLevel }: RuneOptions) {
     Rune.rootDir = rootDir ?? process.cwd();
+    if (logLevel) this.logLevel = logLevel;
     if (useProjectRefs) this.useProjectRefs = useProjectRefs;
-    if (profileTS) this.profileTS = profileTS;
     if (bundleCSS) this.bundleCSS = bundleCSS;
     if (tsConfig) this.tsConfig = tsConfig;
     if (entryPointDir) {
@@ -95,16 +93,16 @@ export default class Rune {
 
     this.entries = this.getEntries();
 
-    if (debug) {
-      consola.success('<Rune> -> INSTANTIATING RUNE')
-    }
+    if (debug) consola.success('<Rune> -> INSTANTIATING RUNE')
   }
 
-  private getEntries() {
+  public getEntries() {
     const { entryPointDir } = this;
     if (this.debug) consola.start('<Rune> -> GETTING ENTRIES')
-
-    const entries = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], { basename_as_entry_name: true, includeHMR: true })() as { [key: string]: Array<string> }
+    const getEntryPoints = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], {
+      includeHMR: true
+    });
+    const entries = getEntryPoints() as { [key: string]: Array<string> }
 
     if (this.debug) {
       consola.info({ entries });
@@ -113,7 +111,7 @@ export default class Rune {
     return entries;
   }
 
-  protected DEFAULT_PROD_CONFIG = (): Configuration => ({
+  public DEFAULT_PROD_CONFIG = (): Configuration => ({
     context: Rune.rootDir,
     mode: 'production',
     infrastructureLogging: { level: this.logLevel },
@@ -170,7 +168,7 @@ export default class Rune {
     ],
   })
 
-  protected DEFAULT_CSS_CONFIG = (): Configuration => ({
+  public DEFAULT_CSS_CONFIG = (): Configuration => ({
     module: {
       rules: [
         { test: /\.css$/i, use: ["style-loader", "css-loader"] },
@@ -178,7 +176,7 @@ export default class Rune {
     },
   })
 
-  protected DEFAULT_DEV_CONFIG = (): Configuration => ({
+  public DEFAULT_DEV_CONFIG = (): Configuration => ({
     context: Rune.rootDir,
     mode: 'development',
     infrastructureLogging: { level: this.logLevel },
