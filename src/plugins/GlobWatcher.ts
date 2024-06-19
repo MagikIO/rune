@@ -60,13 +60,15 @@ export class GlobWatcher {
       // Add the entry to the files obj
       files[entryName] = file;
 
+      const filePath = file.split('.ts')[0];
       if (pluginOptions?.includeHMR && process.env.NODE_ENV === 'development') {
+
         files[entryName] = [
-          file,
           `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=2000&reload=true`,
+          filePath,
         ]
       } else {
-        files[entryName] = [file];
+        files[entryName] = [filePath];
       }
     });
 

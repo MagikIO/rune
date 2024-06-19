@@ -17,9 +17,9 @@ describe('GlobWatcher', () => {
 
     it('should return the correct entries when globs are provided', () => {
       expect(GlobWatcher.getEntries(["./src/**/**.ts"])).toEqual({
-        "Rune": ["./src/Rune.ts"],
-        "plugins/GlobWatcher": ["./src/plugins/GlobWatcher.ts"],
-        "types/Types": ["./src/types/Types.ts"],
+        "Rune": ["./src/Rune"],
+        "plugins/GlobWatcher": ["./src/plugins/GlobWatcher"],
+        "types/Types": ["./src/types/Types"],
       });
     });
 
