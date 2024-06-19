@@ -249,9 +249,10 @@ export default class Rune {
       // https://webpack.js.org/configuration/watch/#watchoptionsignored
       // don't use this pattern, if you have a monorepo with linked packages
       ignored: [
-        'node_modules/',
+        '**/node_modules',
         '**/*.js',
         '**/*.d.ts',
+        '**/.git'
       ],
     },
     devtool: 'source-map',
