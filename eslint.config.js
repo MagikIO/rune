@@ -10,6 +10,7 @@ module.exports = tseslint.config(
       'n/no-unpublished-require',
       '@typescript-eslint/no-require-imports',
       '@typescript-eslint/no-var-requires',
+      'n/hashbang'
     ]
   }).config
 )
