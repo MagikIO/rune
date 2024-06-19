@@ -1,6 +1,6 @@
 {
   "name": "@magik_io/rune",
-  "version": "1.6.10",
+  "version": "1.6.11",
   "main": "dist/Rune.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
