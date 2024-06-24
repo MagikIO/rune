@@ -120,7 +120,7 @@ export default class Rune {
     output: {
       path: this.outputDir,
       filename: '[name].js',
-      publicPath: './bundles',
+      publicPath: '/bundles',
       clean: true,
       assetModuleFilename: './assets/[name].[ext][query]',
       asyncChunks: true,
@@ -140,11 +140,12 @@ export default class Rune {
           test: /\.([cm]?ts|tsx|d.ts)$/,
           include: Rune.jResolve('src'),
           loader: 'ts-loader',
-          options: { configFile: this.tsConfig, transpileOnly: true },
+          options: { configFile: this.tsConfig, transpileOnly: true, useProjectRefs: this.useProjectRefs },
         },
       ],
     },
     plugins: [
+      new GlobWatcher(),
       new WebpackManifestPlugin({
         filter: (file) => {
           if (!file.isInitial
