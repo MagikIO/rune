@@ -9,6 +9,6 @@ eslint.config.json
 .yarn
 .vscode
 tsconfig.json
-eslint.config.mjs
+eslint.config.js
 .editorconfig
 .gitattributes
