@@ -1,6 +1,6 @@
 {
   "name": "@magik_io/rune",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "main": "dist/Rune.js",
   "exports": {
     ".": {
