@@ -60,12 +60,11 @@ export class GlobWatcher {
       // Add the entry to the files obj
       files[entryName] = file;
 
-      const filePath = file.split('.ts')[0];
       // This allows for HMR in development
-      if (pluginOptions?.includeHMR && process.env.NODE_ENV === 'development') {
+      if (pluginOptions?.includeHMR) {
         files[entryName] = [
           `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
-          filePath,
+          file,
         ]
       } else {
         files[entryName] = [file];

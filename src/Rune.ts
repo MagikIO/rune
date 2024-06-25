@@ -195,7 +195,7 @@ export default class Rune {
           || file.name.startsWith('node_module')) return false;
         return true;
       },
-      publicPath: '/bundles/',
+      publicPath: '/',
       fileName: this.manifest,
       useEntryKeys: true,
       map: (file) => {
