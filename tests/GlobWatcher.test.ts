@@ -86,9 +86,9 @@ describe('GlobWatcher', () => {
         process.env.NODE_ENV = 'development';
         const result = GlobWatcher.getFiles('./src/**/*.ts', { includeHMR: true });
         expect(result).toEqual({
-          'Rune': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/Rune"],
-          'plugins/GlobWatcher': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/plugins/GlobWatcher"],
-          'types/Types': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/types/Types"],
+          'Rune': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/Rune.ts"],
+          'plugins/GlobWatcher': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/plugins/GlobWatcher.ts"],
+          'types/Types': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/types/Types.ts"],
         });
       });
 

@@ -7,7 +7,9 @@ interface PluginOptions {
   basename_as_entry_id?: boolean;
   basename_as_entry_name?: boolean;
   globOptions?: Options;
+  /** @default false */
   includeHMR?: boolean;
+  /** @default 'http://localhost:5000' */
   developmentURL?: string;
 }
 
@@ -16,7 +18,7 @@ export class GlobWatcher {
 
   static getEntries(globs: string | string[], pluginOptions?: PluginOptions) {
     // Make sure we have everything we need
-    if (typeof pluginOptions !== 'undefined' && typeof pluginOptions !== 'object') throw new TypeError('pluginOptions_ must be an object');
+    if (typeof pluginOptions !== 'undefined' && typeof pluginOptions !== 'object') throw new TypeError('pluginOptions must be an object');
     if (typeof globs !== 'string' && !Array.isArray(globs)) throw new TypeError('Globs must be a string or an array of strings');
     if (pluginOptions?.globOptions && typeof pluginOptions.globOptions !== 'object') throw new TypeError('globOptions must be an object');
 
@@ -61,7 +63,7 @@ export class GlobWatcher {
       files[entryName] = file;
 
       // This allows for HMR in development
-      if (pluginOptions?.includeHMR) {
+      if (pluginOptions?.includeHMR && process.env.NODE_ENV !== 'production') {
         files[entryName] = [
           `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
           file,
@@ -95,7 +97,6 @@ export class GlobWatcher {
    * @param {Function} callback
    */
   public afterCompile(compilation: Compilation, callback: () => void): void {
-
     for (const directory of GlobWatcher.directories) {
       if (compilation.contextDependencies instanceof Set) { // Support Webpack >= 4
         compilation.contextDependencies.add(path.normalize(directory));

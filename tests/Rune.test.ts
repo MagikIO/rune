@@ -61,8 +61,8 @@ describe('Rune', () => {
 
   describe('Configuration options ->', () => {
     it('should allow for the use of of project references', () => {
-      const rune = new Rune({ entryPointDir: './src', useProjectRefs: true });
-      expect(rune.useProjectRefs).toBe(true);
+      const rune = new Rune({ entryPointDir: './src', tsLoaderOptions: { useProjectRefs: true } });
+      expect(rune.tsLoaderOptions.useProjectRefs).toBe(true);
       const { module } = rune.getConfig();
       const devRules = module?.rules?.[0]
       console.log(devRules);
@@ -80,14 +80,14 @@ describe('Rune', () => {
 
     it('should allow for the use of a custom tsconfig file', () => {
       const rune = new Rune({ entryPointDir: './src', tsConfig: 'tsconfig.prod.json' });
-      expect(rune.tsConfig).toBe('tsconfig.prod.json');
+      expect(rune.tsLoaderOptions.configFile).toBe('tsconfig.prod.json');
       const prodOptions = rune.getConfig() as { module: { rules: Array<{ options: { configFile: string } }> }; }
       expect(prodOptions.module.rules[0].options.configFile).toBe('tsconfig.prod.json');
     })
 
     it('should allow for the use of a custom log level', () => {
-      const rune = new Rune({ entryPointDir: './src', logLevel: 'log' });
-      expect(rune.logLevel).toBe('log');
+      const rune = new Rune({ entryPointDir: './src', logLevel: 'warn' });
+      expect(rune.logLevel).toBe('warn');
     });
 
     describe('should allow for the use of a custom output directory', () => {

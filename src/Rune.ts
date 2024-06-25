@@ -1,10 +1,10 @@
 import { consola } from 'consola';
+import { defu } from 'defu';
 import { join, resolve } from 'node:path';
 import { HotModuleReplacementPlugin, type Configuration, type ModuleOptions, type ResolveOptions } from 'webpack';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
-import { defu } from 'defu';
 import { GlobWatcher } from './plugins/GlobWatcher.js';
-import { type RelativePath, type AbsolutePath, type AbsoluteJSONPath, isRelative } from './types/Types.js';
+import { isRelative, type AbsoluteJSONPath, type AbsolutePath, type RelativePath } from './types/Types.js';
 
 /** Represents the options that can be passed to Rune to create a new webpack configFile */
 export interface RuneOptions {
@@ -22,12 +22,13 @@ export interface RuneOptions {
   developmentURL?: string;
   /** The mode to run webpack in */
   mode?: 'development' | 'production';
-  /** The preferred logging level */
-  logLevel?: "verbose" | "none" | "error" | "warn" | "info" | "log",
+  /** 
+   * The preferred logging level
+   * @default 'verbose'
+   *  */
+  logLevel?: 'warn' | 'info' | 'error' | 'verbose',
   /** debug */
   debug?: boolean;
-  /** Use Project refs */
-  useProjectRefs?: boolean;
   /** Bundle CSS */
   bundleCSS?: boolean;
   /** Output Options */
@@ -36,6 +37,18 @@ export interface RuneOptions {
   resolveOptions?: ResolveOptions;
   /** Module Options */
   moduleOptions?: ModuleOptions;
+  tsLoaderOptions?: {
+    /** @default false */
+    useProjectRefs?: boolean;
+    /** @default true */
+    logInfoToStdOut?: boolean;
+    /** @default 'warn' */
+    logLevel?: 'warn' | 'info' | 'error';
+    /** @default [] */
+    reportFiles?: Array<string>;
+    /** @default true */
+    experimentalFileCaching?: boolean;
+  }
 }
 
 export default class Rune {
@@ -46,12 +59,11 @@ export default class Rune {
   public entryPointDir: RelativePath = './src/pages';
   public outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
   public manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
-  public tsConfig = './tsconfig.bundle.json';
+  // public tsConfig = './tsconfig.bundle.json';
 
   /**
    * Option(al) Props
    */
-  public useProjectRefs = false;
   public bundleCSS = false;
   public debug = false;
   public outputOptions: NonNullable<Configuration['output']> = {};
@@ -59,11 +71,49 @@ export default class Rune {
   public moduleOptions: ModuleOptions = {}
 
   /**
+   * TS-Loader Options
+   */
+  public tsLoaderOptions = {
+    transpileOnly: true,
+    /**
+     * ### Use project references
+     * @note
+     * This is important if you use project references in your project. This will make sure that the project references are resolved correctly.
+     * @default false
+     */
+    useProjectRefs: false,
+    /**
+     * ### Log info to stdout
+     * @note
+     * This is important if you read from stdout or stderr and for proper error handling. The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
+     * @default true
+     */
+    logInfoToStdOut: true,
+    /**
+     * ### Log level
+     * @note
+     * Can be `info`, `warn` or `error` which limits the log output to the specified log level. Beware of the fact that errors are written to stderr and everything else is written to stderr (or stdout if `logInfoToStdOut` is true).
+     * @default 'warn'
+     */
+    logLevel: 'warn',
+    /**
+     * ### Report files
+     * @note
+     * Only report errors on files matching these glob patterns.
+     * @default []
+     * This can be useful when certain types definitions have errors that are not fatal to your application.
+     */
+    reportFiles: [] as Array<string>,
+    configFile: './tsconfig.bundle.json',
+    experimentalFileCaching: true,
+  }
+
+  /**
    * Webpack / State Props
    */
   public developmentURL: string = 'http://localhost:5000' as string;
   public mode: 'development' | 'production' = 'production';
-  public logLevel: "verbose" | "none" | "error" | "warn" | "info" | "log" = 'verbose';
+  public logLevel: 'warn' | 'info' | 'error' | 'verbose' = 'verbose';
 
   public entries: { [key: string]: Array<string> } = {};
 
@@ -79,19 +129,27 @@ export default class Rune {
   }
 
   constructor({
-    entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, bundleCSS, logLevel, moduleOptions, outputOptions, resolveOptions
+    entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, bundleCSS, logLevel, moduleOptions, outputOptions, resolveOptions, tsLoaderOptions
   }: RuneOptions) {
+    if (mode) this.mode = mode ?? process.env.NODE_ENV as 'development' | 'production' ?? 'production';
+    /** First we need to find the root of the project */
     Rune.rootDir = rootDir ?? process.cwd();
-    /** Allow the user to override the default options */
+
+    /** Now lets define how much logging they prefer */
+    if (logLevel) {
+      this.logLevel = logLevel;
+      /** If they didn't provide a prefered log level for ts-watcher, and they are not using the default log level pass it */
+      if (!tsLoaderOptions?.logLevel && logLevel !== 'verbose') this.tsLoaderOptions.logLevel = logLevel;
+    }
+
+    /** Allow the user to override the default webpack options */
     if (moduleOptions) this.moduleOptions = moduleOptions;
     if (outputOptions) this.outputOptions = outputOptions;
     if (resolveOptions) this.resolveOptions = resolveOptions;
-    /** Allow the user to override the default amount of logging */
-    if (logLevel) this.logLevel = logLevel;
+
     /** Allow the user to user TS Project Refs */
-    if (useProjectRefs) this.useProjectRefs = useProjectRefs;
     if (bundleCSS) this.bundleCSS = bundleCSS;
-    if (tsConfig) this.tsConfig = tsConfig;
+    if (tsConfig) this.tsLoaderOptions.configFile = tsConfig;
     if (entryPointDir) {
       this.entryPointDir = isRelative(entryPointDir)
         ? entryPointDir
@@ -107,8 +165,14 @@ export default class Rune {
         ? Rune.jResolve(manifest) as AbsoluteJSONPath
         : manifest;
     }
-    if (mode) this.mode = mode ?? process.env.NODE_ENV as 'development' | 'production' ?? 'production';
+
     if (developmentURL) this.developmentURL = developmentURL;
+    if (tsLoaderOptions) {
+      this.tsLoaderOptions = {
+        ...this.tsLoaderOptions,
+        ...tsLoaderOptions,
+      }
+    }
 
     if (debug) {
       this.debug = debug;
@@ -125,7 +189,7 @@ export default class Rune {
     const { entryPointDir, developmentURL } = this;
     if (this.debug) consola.start('<Rune> -> GETTING ENTRIES')
     const entries = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], {
-      includeHMR: true,
+      includeHMR: this.mode === 'development',
       developmentURL,
     });
 
@@ -173,17 +237,20 @@ export default class Rune {
     return ({
       rules: [
         {
-          test: /\.([cm]?ts|tsx|d.ts)$/,
+          test: /\.([cm]?ts|tsx)$/,
           include: Rune.jResolve(this.entryPointDir),
-          exclude: /node_modules/,
+          exclude: [
+            /node_modules/,
+            /\.d\.ts$/,
+            /\.test\.ts$/,
+            /\.spec\.ts$/,
+            /\.js$/,
+          ],
           loader: 'ts-loader',
-          options: {
-            configFile: this.tsConfig,
-            transpileOnly: true,
-            useProjectRefs: this.useProjectRefs,
-          },
+          options: this.tsLoaderOptions,
         },
       ],
+      ...this.moduleOptions,
     })
   }
 
