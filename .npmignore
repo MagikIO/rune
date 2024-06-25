@@ -3,6 +3,7 @@
 ./tests/**/*.test.ts
 eslint.config.json
 .tools-versions
+.tool-versions
 .yarnrc.yml
 .pnp.*
 .yarn
