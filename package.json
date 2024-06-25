@@ -2,12 +2,17 @@
   "name": "@magik_io/rune",
   "version": "1.7.2",
   "main": "dist/Rune.js",
+  "exports": {
+    ".": {
+      "import": "./dist/Rune.js",
+      "require": "./dist/Rune.js"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "iterate": "npm version patch && git push origin main --tags && npm publish --access public"
   },
   "peerDependencies": {
-    "consola": "^3.2.3",
     "webpack": "^5.91.0"
   },
   "dependencies": {
@@ -46,12 +51,6 @@
     "tabs": false,
     "quoteProps": "consistent",
     "experimentalTernaries": false
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/Rune.js",
-      "require": "./dist/Rune.js"
-    }
   },
   "packageManager": "yarn@4.3.0"
 }
