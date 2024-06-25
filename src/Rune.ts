@@ -236,7 +236,7 @@ export default class Rune {
     return ({
       rules: [
         {
-          test: /\.([cm]?ts|tsx)$/,
+          test: /\.([cm]?ts|tsx|js)$/,
           include: Rune.jResolve(this.entryPointDir),
           loader: 'ts-loader',
           options: this.tsLoaderOptions,
