@@ -1,6 +1,6 @@
 import { consola } from 'consola';
 import { join, resolve } from 'node:path';
-import { HotModuleReplacementPlugin, type Configuration } from 'webpack';
+import { HotModuleReplacementPlugin, type Configuration, type ModuleOptions, type ResolveOptions } from 'webpack';
 import { WebpackManifestPlugin } from 'webpack-manifest-plugin';
 import { defu } from 'defu';
 import { GlobWatcher } from './plugins/GlobWatcher.js';
@@ -33,22 +33,33 @@ export interface RuneOptions {
 }
 
 export default class Rune {
+  /**
+   * PATH Props
+   */
   public static rootDir = process.cwd();
   public entryPointDir: RelativePath = './src/pages';
   public outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
   public manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
+  public tsConfig = './tsconfig.bundle.json';
+
+  /**
+   * Option(al) Props
+   */
   public useProjectRefs = false;
-
   public bundleCSS = false;
+  public debug = false;
+  public outputOptions: NonNullable<Configuration['output']> = {};
+  public resolveOptions: ResolveOptions = {};
+  public moduleOptions: ModuleOptions = {}
 
+  /**
+   * Webpack / State Props
+   */
   public developmentURL: string = 'http://localhost:5000' as string;
-
   public mode: 'development' | 'production' = 'production';
   public logLevel: "verbose" | "none" | "error" | "warn" | "info" | "log" = 'verbose';
-  public tsConfig = './tsconfig.bundle.json';
-  public entries: { [key: string]: Array<string> } = {};
 
-  public debug = false;
+  public entries: { [key: string]: Array<string> } = {};
 
   public static jResolve<Paths extends Array<string> = string[]>(...paths: Paths) {
     return resolve(join(this.rootDir, ...paths)) as AbsolutePath
@@ -111,7 +122,7 @@ export default class Rune {
     return entries as { [key: string]: Array<string> };
   }
 
-  public DEFAULT_CSS_CONFIG = (): Configuration => ({
+  public DEFAULT_CSS_CONFIG = (): { module: ModuleOptions } => ({
     module: {
       rules: [
         { test: /\.css$/i, use: ["style-loader", "css-loader"] },
@@ -119,19 +130,20 @@ export default class Rune {
     },
   })
 
-  private getDefaultOutputConfig() {
+  private getDefaultOutputConfig(): NonNullable<Configuration['output']> {
     return ({
       path: this.outputDir,
       filename: '[name].js',
-      publicPath: '/bundles',
+      publicPath: (this.mode === 'development') ? './bundles' : './bundles/',
       clean: true,
-      assetModuleFilename: './assets/[name].[ext][query]',
       asyncChunks: true,
-      devtoolNamespace: this.mode === 'production' ? 'veritas-magik' : 'veritas-magik-dev',
+      assetModuleFilename: './assets/[name].[ext][query]',
+      devtoolNamespace: (this.mode === 'development') ? 'veritas-magik-dev' : 'veritas-magik',
+      ...this.outputOptions,
     });
   }
 
-  private getDefaultResolveConfig() {
+  private getDefaultResolveConfig(): ResolveOptions {
     return ({
       extensions: [".ts", ".tsx", ".js", ".json", "..."],
       extensionAlias: {
@@ -139,10 +151,11 @@ export default class Rune {
         ".cjs": [".cjs", ".cts"],
         ".mjs": [".mjs", ".mts"]
       },
+      ...this.resolveOptions,
     })
   }
 
-  private getDefaultModuleConfig() {
+  private getDefaultModuleConfig(): ModuleOptions {
     return ({
       rules: [
         {
@@ -157,7 +170,7 @@ export default class Rune {
           },
         },
       ],
-    });
+    })
   }
 
   private getDefaultWebpackManifestPlugin() {
@@ -214,6 +227,7 @@ export default class Rune {
     } else {
       config.plugins = [this.getDefaultWebpackManifestPlugin()]
     }
+
     if (this.bundleCSS) config = defu(config, this.DEFAULT_CSS_CONFIG());
     if (this.debug) consola.success('<Rune> -> GETTING CONFIG')
     return config;
