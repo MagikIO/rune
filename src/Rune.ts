@@ -238,13 +238,6 @@ export default class Rune {
         {
           test: /\.([cm]?ts|tsx)$/,
           include: Rune.jResolve(this.entryPointDir),
-          exclude: [
-            /node_modules/,
-            /\.d\.ts$/,
-            /\.test\.ts$/,
-            /\.spec\.ts$/,
-            /\.js$/,
-          ],
           loader: 'ts-loader',
           options: this.tsLoaderOptions,
         },
