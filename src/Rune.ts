@@ -107,7 +107,7 @@ export default class Rune {
         ? Rune.jResolve(manifest) as AbsoluteJSONPath
         : manifest;
     }
-    if (mode) this.mode = process.env.NODE_ENV as 'development' | 'production' ?? mode;
+    if (mode) this.mode = mode ?? process.env.NODE_ENV as 'development' | 'production' ?? 'production';
     if (developmentURL) this.developmentURL = developmentURL;
 
     if (debug) {
@@ -174,7 +174,7 @@ export default class Rune {
       rules: [
         {
           test: /\.([cm]?ts|tsx|d.ts)$/,
-          include: Rune.jResolve('src'),
+          include: Rune.jResolve(this.entryPointDir),
           exclude: /node_modules/,
           loader: 'ts-loader',
           options: {
@@ -195,7 +195,7 @@ export default class Rune {
           || file.name.startsWith('node_module')) return false;
         return true;
       },
-      publicPath: '/',
+      publicPath: '/bundles/',
       fileName: this.manifest,
       useEntryKeys: true,
       map: (file) => {
