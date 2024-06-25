@@ -11,6 +11,8 @@ interface PluginOptions {
   includeHMR?: boolean;
   /** @default 'http://localhost:5000' */
   developmentURL?: string;
+  /** Remove extension before giving manifest to webpack */
+  removeExtension?: boolean;
 }
 
 export class GlobWatcher {
@@ -62,14 +64,17 @@ export class GlobWatcher {
       // Add the entry to the files obj
       files[entryName] = file;
 
+      let filename = `${file}`;
+      if (pluginOptions?.removeExtension) filename = filename.replace(path.extname(file), '');
+
       // This allows for HMR in development
       if (pluginOptions?.includeHMR && process.env.NODE_ENV !== 'production') {
         files[entryName] = [
           `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
-          file,
+          filename,
         ]
       } else {
-        files[entryName] = [file];
+        files[entryName] = [filename];
       }
     });
 

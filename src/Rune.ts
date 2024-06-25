@@ -37,6 +37,7 @@ export interface RuneOptions {
   resolveOptions?: ResolveOptions;
   /** Module Options */
   moduleOptions?: ModuleOptions;
+  /** TS Loader Options */
   tsLoaderOptions?: {
     /** @default false */
     projectReferences?: boolean;
@@ -48,6 +49,17 @@ export interface RuneOptions {
     reportFiles?: Array<string>;
     /** @default true */
     experimentalFileCaching?: boolean;
+  }
+  /** GlobWatcher Options */
+  globWatcherOptions?: {
+    /** @default false */
+    basename_as_entry_id?: boolean;
+    /** @default false */
+    basename_as_entry_name?: boolean;
+    /** @default 'http://localhost:5000' */
+    developmentURL?: string;
+    /** @default false */
+    removeExtension?: boolean;
   }
 }
 
@@ -68,6 +80,7 @@ export default class Rune {
   public outputOptions: NonNullable<Configuration['output']> = {};
   public resolveOptions: ResolveOptions = {};
   public moduleOptions: ModuleOptions = {}
+  public globWatcherOptions = {}
 
   /**
    * TS-Loader Options
@@ -128,7 +141,7 @@ export default class Rune {
   }
 
   constructor({
-    entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, bundleCSS, logLevel, moduleOptions, outputOptions, resolveOptions, tsLoaderOptions
+    entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, bundleCSS, logLevel, moduleOptions, outputOptions, resolveOptions, tsLoaderOptions, globWatcherOptions
   }: RuneOptions) {
     if (mode) this.mode = mode ?? process.env.NODE_ENV as 'development' | 'production' ?? 'production';
     /** First we need to find the root of the project */
@@ -149,6 +162,7 @@ export default class Rune {
     /** Allow the user to user TS Project Refs */
     if (bundleCSS) this.bundleCSS = bundleCSS;
     if (tsConfig) this.tsLoaderOptions.configFile = tsConfig;
+    if (globWatcherOptions) this.globWatcherOptions = globWatcherOptions;
     if (entryPointDir) {
       this.entryPointDir = isRelative(entryPointDir)
         ? entryPointDir
@@ -185,11 +199,12 @@ export default class Rune {
   }
 
   public getEntries() {
-    const { entryPointDir, developmentURL } = this;
+    const { entryPointDir, developmentURL, globWatcherOptions } = this;
     if (this.debug) consola.start('<Rune> -> GETTING ENTRIES')
     const entries = GlobWatcher.getEntries([`${entryPointDir}**/*.ts`], {
       includeHMR: this.mode === 'development',
       developmentURL,
+      ...globWatcherOptions,
     });
 
     if (this.debug) {
@@ -236,7 +251,7 @@ export default class Rune {
     return ({
       rules: [
         {
-          test: /\.([cm]?ts|tsx|js)$/,
+          test: /\.([cm]?ts|tsx)$/,
           include: Rune.jResolve(this.entryPointDir),
           loader: 'ts-loader',
           options: this.tsLoaderOptions,
