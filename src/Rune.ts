@@ -226,7 +226,7 @@ export default class Rune {
     return ({
       path: this.outputDir,
       filename: '[name].js',
-      publicPath: (this.mode === 'development') ? './bundles' : './bundles/',
+      publicPath: (this.mode === 'development') ? '/bundles' : '/bundles/',
       clean: true,
       asyncChunks: true,
       assetModuleFilename: './assets/[name].[ext][query]',
@@ -252,8 +252,9 @@ export default class Rune {
       ...this.moduleOptions,
       rules: [
         {
-          test: /\.([cm]?ts|tsx)$/,
-          include: Rune.jResolve(this.entryPointDir),
+          test: /\.([cm]?ts|tsx|d.ts)$/,
+          include: Rune.jResolve('src'),
+          exclude: /node_modules/,
           loader: 'ts-loader',
           options: this.tsLoaderOptions,
         },
@@ -306,6 +307,8 @@ export default class Rune {
       config.watchOptions = {
         ignored: [
           '**/node_modules',
+          '**/*.js',
+          '**/*.d.ts',
           '**/.git'
         ],
       }
