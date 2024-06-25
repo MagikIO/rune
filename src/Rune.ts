@@ -111,64 +111,6 @@ export default class Rune {
     return entries as { [key: string]: Array<string> };
   }
 
-  public DEFAULT_PROD_CONFIG = (): Configuration => ({
-    context: Rune.rootDir,
-    mode: 'production',
-    infrastructureLogging: { level: this.logLevel },
-    watch: false,
-    entry: this.entries,
-    output: {
-      path: this.outputDir,
-      filename: '[name].js',
-      publicPath: '/bundles',
-      clean: true,
-      assetModuleFilename: './assets/[name].[ext][query]',
-      asyncChunks: true,
-      devtoolNamespace: 'veritas-magik',
-    },
-    resolve: {
-      extensions: [".ts", ".tsx", ".js", ".json", "..."],
-      extensionAlias: {
-        ".js": [".js", ".ts"],
-        ".cjs": [".cjs", ".cts"],
-        ".mjs": [".mjs", ".mts"]
-      },
-    },
-    module: {
-      rules: [
-        {
-          test: /\.([cm]?ts|tsx|d.ts)$/,
-          include: Rune.jResolve('src'),
-          loader: 'ts-loader',
-          options: { configFile: this.tsConfig, transpileOnly: true, useProjectRefs: this.useProjectRefs },
-        },
-      ],
-    },
-    plugins: [
-      new GlobWatcher(),
-      new WebpackManifestPlugin({
-        filter: (file) => {
-          if (!file.isInitial
-            || file.name.endsWith('.map')
-            || file.name.startsWith('node_module')) return false;
-          return true;
-        },
-        publicPath: '/',
-        fileName: this.manifest,
-        useEntryKeys: true,
-        map: (file) => {
-          const nameSections = file.name.split('/');
-          return { ...file, name: nameSections[nameSections.length - 1] };
-        },
-        sort: (a, b) => {
-          const aPath = a.path.split('/');
-          const bPath = b.path.split('/');
-          return aPath[aPath.length - 1].localeCompare(bPath[bPath.length - 1]);
-        },
-      }),
-    ],
-  })
-
   public DEFAULT_CSS_CONFIG = (): Configuration => ({
     module: {
       rules: [
@@ -177,32 +119,31 @@ export default class Rune {
     },
   })
 
-  public DEFAULT_DEV_CONFIG = (): Configuration => ({
-    context: Rune.rootDir,
-    mode: 'development',
-    infrastructureLogging: { level: this.logLevel },
-    watch: true,
-    entry: this.entries,
-    output: {
+  private getDefaultOutputConfig() {
+    return ({
       path: this.outputDir,
       filename: '[name].js',
       publicPath: '/bundles',
       clean: true,
       assetModuleFilename: './assets/[name].[ext][query]',
       asyncChunks: true,
-      devtoolNamespace: 'magik-dev',
-    },
-    resolve: {
-      // Add `.ts` and `.tsx` as a resolvable extension.
+      devtoolNamespace: this.mode === 'production' ? 'veritas-magik' : 'veritas-magik-dev',
+    });
+  }
+
+  private getDefaultResolveConfig() {
+    return ({
       extensions: [".ts", ".tsx", ".js", ".json", "..."],
-      // Add support for TypeScripts fully qualified ESM imports.
       extensionAlias: {
         ".js": [".js", ".ts"],
         ".cjs": [".cjs", ".cts"],
         ".mjs": [".mjs", ".mts"]
       },
-    },
-    module: {
+    })
+  }
+
+  private getDefaultModuleConfig() {
+    return ({
       rules: [
         {
           test: /\.([cm]?ts|tsx|d.ts)$/,
@@ -212,56 +153,67 @@ export default class Rune {
           options: {
             configFile: this.tsConfig,
             transpileOnly: true,
-            projectReferences: this.useProjectRefs,
+            useProjectRefs: this.useProjectRefs,
           },
         },
       ],
-    },
-    plugins: [
-      new HotModuleReplacementPlugin(),
-      new GlobWatcher(),
-      new WebpackManifestPlugin({
-        filter: (file) => {
-          if (!file.isInitial
-            || file.name.endsWith('.map')
-            || file.name.startsWith('node_module')) return false;
-          return true;
-        },
-        publicPath: '/',
-        fileName: this.manifest,
-        useEntryKeys: true,
-        map: (file) => {
-          const nameSections = file.name.split('/');
-          return {
-            ...file,
-            name: nameSections[nameSections.length - 1],
-          };
-        },
-        // Sort by the path starting after /bundles/
-        sort: (a, b) => {
-          const aPath = a.path.split('/');
-          const bPath = b.path.split('/');
-          return aPath[aPath.length - 1].localeCompare(bPath[bPath.length - 1]);
-        },
-      }),
-    ],
-    watchOptions: {
-      // for some systems, watching many files can result in a lot of CPU or memory usage
-      // https://webpack.js.org/configuration/watch/#watchoptionsignored
-      // don't use this pattern, if you have a monorepo with linked packages
-      ignored: [
-        '**/node_modules',
-        '**/*.js',
-        '**/*.d.ts',
-        '**/.git'
-      ],
-    },
-    devtool: 'source-map',
-  })
+    });
+  }
+
+  private getDefaultWebpackManifestPlugin() {
+    return new WebpackManifestPlugin({
+      filter: (file) => {
+        if (!file.isInitial
+          || file.name.endsWith('.map')
+          || file.name.startsWith('node_module')) return false;
+        return true;
+      },
+      publicPath: '/',
+      fileName: this.manifest,
+      useEntryKeys: true,
+      map: (file) => {
+        const nameSections = file.name.split('/');
+        return { ...file, name: nameSections[nameSections.length - 1] };
+      },
+      sort: (a, b) => {
+        const aPath = a.path.split('/');
+        const bPath = b.path.split('/');
+        return aPath[aPath.length - 1].localeCompare(bPath[bPath.length - 1]);
+      },
+    })
+  }
 
   public getConfig(configOptions?: Configuration): Configuration {
     if (this.debug) consola.start('<Rune> -> GETTING CONFIG')
-    let config = defu(configOptions, (this.mode === 'production') ? this.DEFAULT_PROD_CONFIG() : this.DEFAULT_DEV_CONFIG())
+    let config = defu(configOptions ?? {}, {
+      context: Rune.rootDir,
+      mode: this.mode,
+      infrastructureLogging: { level: this.logLevel },
+      watch: this.mode === 'development',
+      entry: this.entries,
+      output: this.getDefaultOutputConfig(),
+      resolve: this.getDefaultResolveConfig(),
+      module: this.getDefaultModuleConfig(),
+    })
+
+    if (this.mode === 'development') {
+      config.plugins = [
+        new HotModuleReplacementPlugin(),
+        new GlobWatcher(),
+        this.getDefaultWebpackManifestPlugin(),
+      ]
+      config.watchOptions = {
+        ignored: [
+          '**/node_modules',
+          '**/*.js',
+          '**/*.d.ts',
+          '**/.git'
+        ],
+      }
+      config.devtool = 'source-map';
+    } else {
+      config.plugins = [this.getDefaultWebpackManifestPlugin()]
+    }
     if (this.bundleCSS) config = defu(config, this.DEFAULT_CSS_CONFIG());
     if (this.debug) consola.success('<Rune> -> GETTING CONFIG')
     return config;

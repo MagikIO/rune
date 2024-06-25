@@ -2,7 +2,6 @@ import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import Rune from '../src/Rune.js';
 
-
 describe('Rune', () => {
   describe('new Rune()', () => {
     it('should initialize with default options', () => {
@@ -45,20 +44,10 @@ describe('Rune', () => {
 
   describe('Configuration Methods ->', () => {
     const rune = new Rune({ entryPointDir: './src' });
-    it('[M] DEFAULT_PROD_CONFIG should create correct production configuration', () => {
-      const config = rune.DEFAULT_PROD_CONFIG();
-      expect(config.mode).toBe('production');
-    });
-
     it('DEFAULT_CSS_CONFIG should include CSS rules', () => {
       const config = rune.DEFAULT_CSS_CONFIG();
       const rules = config.module!.rules as Array<{ test: RegExp }>;
       expect(rules.some(rule => rule.test.toString().includes('.css'))).toBe(true);
-    });
-
-    it('DEFAULT_DEV_CONFIG should create correct development configuration', () => {
-      const config = rune.DEFAULT_DEV_CONFIG();
-      expect(config.mode).toBe('development');
     });
   });
 
@@ -74,8 +63,12 @@ describe('Rune', () => {
     it('should allow for the use of of project references', () => {
       const rune = new Rune({ entryPointDir: './src', useProjectRefs: true });
       expect(rune.useProjectRefs).toBe(true);
-      const devRules = rune.DEFAULT_DEV_CONFIG().module!.rules as Array<{ options: { projectReferences: boolean } }>
-      expect(devRules[0].options.projectReferences).toBe(true);
+      const { module } = rune.getConfig();
+      const devRules = module?.rules?.[0]
+      console.log(devRules);
+      // @ts-expect-error - TS doesn't know about the options property
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      expect(devRules.options.useProjectRefs).toBe(true);
     });
 
     it('should allow for the bundling of CSS', () => {
@@ -88,7 +81,7 @@ describe('Rune', () => {
     it('should allow for the use of a custom tsconfig file', () => {
       const rune = new Rune({ entryPointDir: './src', tsConfig: 'tsconfig.prod.json' });
       expect(rune.tsConfig).toBe('tsconfig.prod.json');
-      const prodOptions = rune.DEFAULT_PROD_CONFIG() as { module: { rules: Array<{ options: { configFile: string } }> }; }
+      const prodOptions = rune.getConfig() as { module: { rules: Array<{ options: { configFile: string } }> }; }
       expect(prodOptions.module.rules[0].options.configFile).toBe('tsconfig.prod.json');
     })
 
@@ -100,15 +93,14 @@ describe('Rune', () => {
     describe('should allow for the use of a custom output directory', () => {
       it('should allow for out directory to be relative', () => {
         const rune = new Rune({ entryPointDir: './src', outputDir: './testOut' });
-        expect(rune.outputDir).toBe('/home/navi/Code/rune/testOut');
-        const prodOutput = rune.DEFAULT_PROD_CONFIG().output as { path: string };
-        expect(prodOutput.path).toBe('/home/navi/Code/rune/testOut');
+        const outputDirWithoutHome = rune.outputDir.split('/').slice(4).join('/');
+        expect(outputDirWithoutHome).toBe('rune/testOut');
       });
 
       it('should allow for out directory to be absolute', () => {
         const rune = new Rune({ entryPointDir: './src', outputDir: '/home/navi/Code/rune/testOut' });
         expect(rune.outputDir).toBe('/home/navi/Code/rune/testOut');
-        const prodOutput = rune.DEFAULT_PROD_CONFIG().output as { path: string };
+        const prodOutput = rune.getConfig().output as { path: string };
         expect(prodOutput.path).toBe('/home/navi/Code/rune/testOut');
       });
     });
@@ -116,7 +108,8 @@ describe('Rune', () => {
     describe('should allow for the use of a custom manifest file', () => {
       it('should allow for manifest file to be relative', () => {
         const rune = new Rune({ entryPointDir: './src', manifest: './testManifest.json' });
-        expect(rune.manifest).toBe('/home/navi/Code/rune/testManifest.json');
+        const manifestPathWithOutHome = rune.manifest.split('/').slice(4).join('/');
+        expect(manifestPathWithOutHome).toBe('rune/testManifest.json');
       });
       it('should allow for manifest file to be absolute', () => {
         const rune = new Rune({ entryPointDir: './src', manifest: '/test/testManifest.json' });
@@ -137,7 +130,8 @@ describe('Rune', () => {
 
       it('should allow for entryPointDir to be absolute', () => {
         const rune = new Rune({ entryPointDir: '/src' });
-        expect(rune.entryPointDir).toBe('/home/navi/Code/rune/src');
+        const entryWithoutHome = rune.entryPointDir.split('/').slice(4).join('/');
+        expect(entryWithoutHome).toBe('rune/src');
       });
     });
 

@@ -17,9 +17,9 @@ describe('GlobWatcher', () => {
 
     it('should return the correct entries when globs are provided', () => {
       expect(GlobWatcher.getEntries(["./src/**/**.ts"])).toEqual({
-        "Rune": ["./src/Rune"],
-        "plugins/GlobWatcher": ["./src/plugins/GlobWatcher"],
-        "types/Types": ["./src/types/Types"],
+        "Rune": ["./src/Rune.ts"],
+        "plugins/GlobWatcher": ["./src/plugins/GlobWatcher.ts"],
+        "types/Types": ["./src/types/Types.ts"],
       });
     });
 
@@ -86,9 +86,9 @@ describe('GlobWatcher', () => {
         process.env.NODE_ENV = 'development';
         const result = GlobWatcher.getFiles('./src/**/*.ts', { includeHMR: true });
         expect(result).toEqual({
-          'Rune': ["./src/Rune.ts", "webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true"],
-          'plugins/GlobWatcher': ["./src/plugins/GlobWatcher.ts", "webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true"],
-          'types/Types': ["./src/types/Types.ts", "webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true"],
+          'Rune': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/Rune"],
+          'plugins/GlobWatcher': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/plugins/GlobWatcher"],
+          'types/Types': ["webpack-hot-middleware/client?path=http://localhost:5000/__webpack_hmr&timeout=20000&reload=true", "./src/types/Types"],
         });
       });
 

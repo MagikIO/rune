@@ -61,14 +61,14 @@ export class GlobWatcher {
       files[entryName] = file;
 
       const filePath = file.split('.ts')[0];
+      // This allows for HMR in development
       if (pluginOptions?.includeHMR && process.env.NODE_ENV === 'development') {
-
         files[entryName] = [
-          `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=2000&reload=true`,
+          `webpack-hot-middleware/client?path=${developmentURL}/__webpack_hmr&timeout=20000&reload=true`,
           filePath,
         ]
       } else {
-        files[entryName] = [filePath];
+        files[entryName] = [file];
       }
     });
 
@@ -101,9 +101,8 @@ export class GlobWatcher {
       if (compilation.contextDependencies instanceof Set) { // Support Webpack >= 4
         compilation.contextDependencies.add(path.normalize(directory));
       } else if (Array.isArray(compilation.contextDependencies)) { // Support Webpack < 4
-        /* eslint-disable */
         compilation.contextDependencies.push(path.normalize(directory));
-      } /* eslint-enable */
+      }
     }
 
     callback();
