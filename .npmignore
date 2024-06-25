@@ -1,6 +1,6 @@
 /src/**/*
-/test/**/*
-./test/**/*.test.ts
+/tests/**/*
+./tests/**/*.test.ts
 eslint.config.json
 .tools-versions
 .yarnrc.yml
