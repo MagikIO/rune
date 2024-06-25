@@ -30,6 +30,12 @@ export interface RuneOptions {
   useProjectRefs?: boolean;
   /** Bundle CSS */
   bundleCSS?: boolean;
+  /** Output Options */
+  outputOptions?: NonNullable<Configuration['output']>;
+  /** Resolve Options */
+  resolveOptions?: ResolveOptions;
+  /** Module Options */
+  moduleOptions?: ModuleOptions;
 }
 
 export default class Rune {
@@ -72,9 +78,17 @@ export default class Rune {
     }
   }
 
-  constructor({ entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, bundleCSS, logLevel }: RuneOptions) {
+  constructor({
+    entryPointDir, rootDir, manifest, outputDir, tsConfig, mode, developmentURL, debug, useProjectRefs, bundleCSS, logLevel, moduleOptions, outputOptions, resolveOptions
+  }: RuneOptions) {
     Rune.rootDir = rootDir ?? process.cwd();
+    /** Allow the user to override the default options */
+    if (moduleOptions) this.moduleOptions = moduleOptions;
+    if (outputOptions) this.outputOptions = outputOptions;
+    if (resolveOptions) this.resolveOptions = resolveOptions;
+    /** Allow the user to override the default amount of logging */
     if (logLevel) this.logLevel = logLevel;
+    /** Allow the user to user TS Project Refs */
     if (useProjectRefs) this.useProjectRefs = useProjectRefs;
     if (bundleCSS) this.bundleCSS = bundleCSS;
     if (tsConfig) this.tsConfig = tsConfig;
