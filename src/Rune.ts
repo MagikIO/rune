@@ -59,7 +59,6 @@ export default class Rune {
   public entryPointDir: RelativePath = './src/pages';
   public outputDir: AbsolutePath = Rune.jResolve('public', 'bundles');
   public manifest: AbsoluteJSONPath = Rune.jResolve('assets', 'manifest.json') as AbsoluteJSONPath;
-  // public tsConfig = './tsconfig.bundle.json';
 
   /**
    * Option(al) Props
