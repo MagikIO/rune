@@ -39,7 +39,7 @@ export interface RuneOptions {
   moduleOptions?: ModuleOptions;
   tsLoaderOptions?: {
     /** @default false */
-    useProjectRefs?: boolean;
+    projectReferences?: boolean;
     /** @default true */
     logInfoToStdOut?: boolean;
     /** @default 'warn' */
@@ -81,7 +81,7 @@ export default class Rune {
      * This is important if you use project references in your project. This will make sure that the project references are resolved correctly.
      * @default false
      */
-    useProjectRefs: false,
+    projectReferences: false,
     /**
      * ### Log info to stdout
      * @note

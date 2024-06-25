@@ -61,14 +61,14 @@ describe('Rune', () => {
 
   describe('Configuration options ->', () => {
     it('should allow for the use of of project references', () => {
-      const rune = new Rune({ entryPointDir: './src', tsLoaderOptions: { useProjectRefs: true } });
-      expect(rune.tsLoaderOptions.useProjectRefs).toBe(true);
+      const rune = new Rune({ entryPointDir: './src', tsLoaderOptions: { projectReferences: true } });
+      expect(rune.tsLoaderOptions.projectReferences).toBe(true);
       const { module } = rune.getConfig();
       const devRules = module?.rules?.[0]
       console.log(devRules);
       // @ts-expect-error - TS doesn't know about the options property
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(devRules.options.useProjectRefs).toBe(true);
+      expect(devRules.options.projectReferences).toBe(true);
     });
 
     it('should allow for the bundling of CSS', () => {
