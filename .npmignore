@@ -1,4 +1,8 @@
 /src/**/*
+/test/**/*
+eslint.config.json
+.tools-versions
+.yarnrc.yml
 .pnp.*
 .yarn
 .vscode
