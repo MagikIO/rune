@@ -124,7 +124,7 @@ export default class Rune {
    * Webpack / State Props
    */
   public developmentURL: string = 'http://localhost:5000' as string;
-  public mode: 'development' | 'production' = 'production';
+  public mode: 'development' | 'production' = process.env.NODE_ENV as 'development' | 'production' ?? 'production';
   public logLevel: 'warn' | 'info' | 'error' | 'verbose' = 'verbose';
 
   public entries: { [key: string]: Array<string> } = {};
@@ -249,6 +249,7 @@ export default class Rune {
 
   private getDefaultModuleConfig(): ModuleOptions {
     return ({
+      ...this.moduleOptions,
       rules: [
         {
           test: /\.([cm]?ts|tsx)$/,
@@ -257,7 +258,6 @@ export default class Rune {
           options: this.tsLoaderOptions,
         },
       ],
-      ...this.moduleOptions,
     })
   }
 
@@ -306,8 +306,6 @@ export default class Rune {
       config.watchOptions = {
         ignored: [
           '**/node_modules',
-          '**/*.js',
-          '**/*.d.ts',
           '**/.git'
         ],
       }
