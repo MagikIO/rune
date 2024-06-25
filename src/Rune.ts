@@ -107,7 +107,7 @@ export default class Rune {
         ? Rune.jResolve(manifest) as AbsoluteJSONPath
         : manifest;
     }
-    if (mode) this.mode = mode;
+    if (mode) this.mode = process.env.NODE_ENV as 'development' | 'production' ?? mode;
     if (developmentURL) this.developmentURL = developmentURL;
 
     if (debug) {
