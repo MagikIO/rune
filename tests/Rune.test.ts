@@ -46,7 +46,7 @@ describe('Rune', () => {
     const rune = new Rune({ entryPointDir: './src' });
     it('DEFAULT_CSS_CONFIG should include CSS rules', () => {
       const config = rune.DEFAULT_CSS_CONFIG();
-      const rules = config.module!.rules as Array<{ test: RegExp }>;
+      const rules = config.module.rules as Array<{ test: RegExp }>;
       expect(rules.some(rule => rule.test.toString().includes('.css'))).toBe(true);
     });
   });
